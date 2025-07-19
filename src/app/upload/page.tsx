@@ -1,6 +1,8 @@
 'use client';
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Loader from "@/components/Loader";
+import Toast from "@/components/Toast";
 
 export default function UploadPage() {
   const [preview, setPreview] = useState<string | null>(null);
@@ -12,6 +14,8 @@ export default function UploadPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [toast, setToast] = useState<{ message: string, type?: "info" | "error" | "success" } | null>(null);
+  const [comment, setComment] = useState("");
 
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -44,6 +48,7 @@ export default function UploadPage() {
     setRecommendations(null);
     if (!file) {
       setError("Выберите файл");
+      showToast("Выберите файл", "error");
       return;
     }
     setLoading(true);
@@ -59,10 +64,12 @@ export default function UploadPage() {
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Ошибка загрузки");
+        showToast(data.error || "Ошибка загрузки", "error");
       } else {
         setUploadedUrl(data.url);
         setPreview(null);
         if (inputRef.current) inputRef.current.value = "";
+        showToast("Фото успешно загружено!", "success");
       }
     } catch {
       setError("Ошибка сети");
@@ -81,6 +88,7 @@ export default function UploadPage() {
       const formData = new FormData();
       // Для vision API нужен файл, а не url, поэтому повторно выбираем файл
       if (file) formData.append("file", file);
+      formData.append("comment", comment);
       const res = await fetch("/api/recommend-vision", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -89,14 +97,21 @@ export default function UploadPage() {
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Ошибка генерации рекомендаций");
+        showToast(data.error || "Ошибка генерации рекомендаций", "error");
       } else {
         setRecommendations(data.recommendations);
+        showToast("Рекомендации получены!", "success");
       }
     } catch {
       setError("Ошибка сети");
+      showToast("Ошибка сети", "error");
     } finally {
       setRecVisionLoading(false);
     }
+  }
+
+  function showToast(message: string, type: "info" | "error" | "success" = "info") {
+    setToast({ message, type });
   }
 
   // UI этапы:
@@ -108,7 +123,7 @@ export default function UploadPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-zinc-100">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-10 flex flex-col items-center border border-zinc-100">
-        <h2 className="text-3xl font-extrabold mb-3 text-green-800 tracking-tight drop-shadow-sm">Анализ растения по фото</h2>
+        <h2 className="text-2xl sm:text-3xl font-extrabold mb-3 text-green-800 tracking-tight drop-shadow-sm text-center leading-tight">Анализ растения по фото</h2>
         <p className="mb-7 text-neutral-500 text-center text-base">Загрузите фото растения, чтобы получить лаконичные рекомендации по уходу с помощью искусственного интеллекта.</p>
         {/* Этап 1: Нет файла */}
         {!file && !uploadedUrl && (
@@ -138,18 +153,27 @@ export default function UploadPage() {
             <div className="flex flex-col items-center gap-2 w-full">
               <img src={preview!} alt="Превью" className="rounded-2xl shadow-lg max-h-56 mb-2 border-2 border-green-200" />
               <span className="text-green-700 text-sm font-medium mb-2">{file.name}</span>
+              <textarea
+                className="w-full border rounded-xl p-3 mb-2 text-green-900 text-base resize-none focus:outline-green-400"
+                rows={3}
+                placeholder="Комментарий (необязательно): опишите проблему, условия, когда появились симптомы и т.д."
+                value={comment}
+                onChange={e => setComment(e.target.value)}
+                maxLength={400}
+              />
+              <div className="text-xs text-zinc-500 mb-2 text-left w-full">Комментарий поможет нейросети точнее диагностировать проблему. Пример: "Пятна появились после пересадки. Поливала 2 дня назад. Стоит на северном окне."</div>
               <button
                 onClick={handleSubmit}
                 type="button"
                 className="w-full py-3 px-4 rounded-xl bg-green-700 text-white font-bold shadow hover:bg-green-800 transition disabled:opacity-60 cursor-pointer text-lg"
                 disabled={loading}
               >
-                {loading ? "Загрузка..." : "Отправить фото"}
+                {loading ? <Loader text="Загрузка..." /> : "Отправить фото"}
               </button>
               <button
                 type="button"
                 className="mt-2 text-green-500 underline text-sm hover:text-green-700 transition"
-                onClick={() => { setFile(null); setPreview(null); setError(null); }}
+                onClick={() => { setFile(null); setPreview(null); setError(null); setComment(""); }}
               >
                 Выбрать другое фото
               </button>
@@ -169,7 +193,7 @@ export default function UploadPage() {
                 className="w-full py-3 px-4 rounded-xl bg-green-900 text-white font-bold shadow hover:bg-green-800 transition disabled:opacity-60 cursor-pointer text-lg"
                 disabled={recVisionLoading}
               >
-                {recVisionLoading ? "Генерация рекомендаций..." : "Получить рекомендации"}
+                {recVisionLoading ? <Loader text="Генерация рекомендаций..." /> : "Получить рекомендации"}
               </button>
               <button
                 type="button"
@@ -183,6 +207,7 @@ export default function UploadPage() {
         )}
         {/* Ошибка */}
         {error && <div className="text-red-600 mt-4 text-sm text-center font-medium">{error}</div>}
+        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         {/* Этап 4: Рекомендации */}
         {recommendations && (
           <div className="mt-8 p-5 bg-green-50 rounded-2xl text-green-900 whitespace-pre-line w-full shadow-inner border border-green-100">

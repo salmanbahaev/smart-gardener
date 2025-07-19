@@ -1,40 +1,52 @@
-<<<<<<< HEAD
-# smart-gardener
-=======
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SmartGardener
 
-## Getting Started
+SmartGardener — это Next.js-приложение для распознавания растений по фото, получения рекомендаций по уходу и ведения персонального журнала садовода.
 
-First, run the development server:
+## Возможности
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Регистрация и вход по email
+- Загрузка фото растения (Cloudinary)
+- Получение рекомендаций по уходу (OpenAI)
+- Персональный профиль и журнал
+- Защита роутов (только для авторизованных)
+- Удобная навигация и современный UI
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Быстрый старт
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Клонируйте репозиторий и установите зависимости:
+   ```bash
+   npm install
+   # или
+   yarn install
+   ```
+2. Создайте файл `.env.local` на основе `.env.example` и заполните своими ключами:
+   ```bash
+   cp .env.example .env.local
+   # затем отредактируйте .env.local
+   ```
+3. Запустите локальный сервер:
+   ```bash
+   npm run dev
+   # или
+   yarn dev
+   ```
+4. Откройте [http://localhost:3000](http://localhost:3000)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Структура проекта
 
-## Learn More
+- `src/app` — страницы и API-роуты
+- `src/components` — переиспользуемые компоненты (Loader, Toast и др.)
+- `src/lib` — вспомогательные библиотеки (например, db)
+- `src/models` — модели данных (User и др.)
 
-To learn more about Next.js, take a look at the following resources:
+## Переменные окружения
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Все необходимые переменные описаны в `.env.example`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Развёртывание
 
-## Deploy on Vercel
+Для деплоя используйте Vercel или любой другой хостинг, поддерживающий Next.js.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Лицензия
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
->>>>>>> f1fb2cc (Initial commit from Create Next App)
+MIT
