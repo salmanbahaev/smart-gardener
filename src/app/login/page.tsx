@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+// import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -45,6 +46,7 @@ export default function LoginPage() {
           <input type="password" placeholder="Пароль" className="border rounded px-3 py-2" required value={password} onChange={e => setPassword(e.target.value)} />
           <button type="submit" className="bg-green-600 text-white py-2 rounded hover:bg-green-700 disabled:opacity-60" disabled={loading}>{loading ? "Вход..." : "Войти"}</button>
         </form>
+        {/* Кнопка Google входа удалена */}
         {error && <div className="text-red-600 mt-3 text-sm text-center">{error}</div>}
         <p className="mt-4 text-sm text-center">
           Нет аккаунта? <Link href="/register" className="text-green-700 underline">Зарегистрироваться</Link>

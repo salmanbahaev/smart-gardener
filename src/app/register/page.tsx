@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+// import { signIn } from "next-auth/react";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -51,6 +52,7 @@ export default function RegisterPage() {
           <input type="password" placeholder="Повторите пароль" className="border rounded px-3 py-2" required value={confirm} onChange={e => setConfirm(e.target.value)} />
           <button type="submit" className="bg-green-600 text-white py-2 rounded hover:bg-green-700 disabled:opacity-60" disabled={loading}>{loading ? "Регистрация..." : "Зарегистрироваться"}</button>
         </form>
+        {/* Кнопка Google регистрации удалена */}
         {error && <div className="text-red-600 mt-3 text-sm text-center">{error}</div>}
         {success && <div className="text-green-700 mt-3 text-sm text-center">Успешно! Перенаправление...</div>}
         <p className="mt-4 text-sm text-center">
