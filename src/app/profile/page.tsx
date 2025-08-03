@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 interface Analysis {
   imageUrl: string;
@@ -14,7 +15,7 @@ interface Achievement {
   achievedAt: string;
 }
 
-export default function ProfilePage() {
+function ProfileContent() {
   const [profile, setProfile] = useState<{
     email: string;
     avatar: string;
@@ -30,7 +31,7 @@ export default function ProfilePage() {
   const [expanded, setExpanded] = useState<{ [key: number]: boolean }>({});
 
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = localStorage.getItem("token");
     if (!token) {
       router.push("/login");
       return;
@@ -44,7 +45,9 @@ export default function ProfilePage() {
         }
         return res.json();
       })
-      .then((data) => setProfile(data))
+      .then((data) => {
+        setProfile(data);
+      })
       .catch(() => {
         setError("Ошибка авторизации");
         localStorage.removeItem("token");
@@ -60,83 +63,212 @@ export default function ProfilePage() {
   if (error) return null;
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-green-50">
-      <div className="w-full max-w-[1140px] bg-white/30 backdrop-blur-md border border-green-300/60 rounded-2xl shadow-2xl p-6 sm:p-8 lg:p-10 flex flex-col items-center my-8 animate-fade-in mx-auto px-4">
-        <h2 className="text-xl font-bold mb-4 text-green-800">Профиль</h2>
-        {!profile ? (
-          <div>Загрузка...</div>
-        ) : (
-          <>
-            {/* Аватар и email */}
-            <div className="flex flex-col items-center mb-4 w-full">
-              <div className="w-20 h-20 rounded-full bg-green-200 flex items-center justify-center text-4xl mb-2 overflow-hidden">
-                {profile.avatar ? (
-                  <img src={profile.avatar} alt="avatar" className="w-full h-full object-cover" />
+    <main className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 relative overflow-hidden">
+      {/* Декоративные элементы */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-green-400/20 to-emerald-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-teal-400/20 to-cyan-400/20 rounded-full blur-3xl"></div>
+      </div>
+
+      {/* Основной контент */}
+      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center p-6">
+        <div className="w-full max-w-4xl">
+          {/* Заголовок */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-lg mb-6">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
+              Личный профиль
+            </h1>
+            <p className="text-gray-600">Управляйте своим аккаунтом и просматривайте историю</p>
+          </div>
+
+          {!profile ? (
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-green-100 text-center">
+              <div className="flex items-center justify-center">
+                <svg className="animate-spin h-8 w-8 text-green-600 mr-3" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+                <span className="text-gray-700">Загрузка профиля...</span>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Информация о пользователе */}
+              <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-green-100">
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+                  {/* Аватар */}
+                  <div className="relative">
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-4xl shadow-lg overflow-hidden border-4 border-white">
+                      {profile.avatar ? (
+                        <img src={profile.avatar} alt="avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center border-2 border-white">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Информация */}
+                  <div className="flex-1 text-center md:text-left">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">{profile.email}</h2>
+                    <p className="text-gray-600 mb-4">Зарегистрирован: {new Date(profile.createdAt).toLocaleDateString('ru-RU', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}</p>
+                    
+                    {/* Статистика */}
+                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-100 to-emerald-100 px-4 py-2 rounded-xl">
+                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      <span className="font-semibold text-green-700">Анализов: {profile.analysisCount}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* История анализов */}
+              <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-green-100">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800">История анализов</h3>
+                </div>
+
+                {profile.analyses.length === 0 ? (
+                  <div className="text-center py-8">
+                    <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p className="text-gray-500">История анализов пуста</p>
+                    <p className="text-gray-400 text-sm">Загрузите первое фото растения для анализа</p>
+                  </div>
                 ) : (
-                  <span role="img" aria-label="avatar">🌱</span>
+                  <div className="space-y-4">
+                    {profile.analyses.map((a, i) => {
+                      const isLong = (a.result || '').length > 180 || (a.result || '').split('\n').length > 3;
+                      const collapsedText = (a.result || '').split('\n').slice(0, 3).join('\n').slice(0, 180) + (isLong ? '...' : '');
+                      const expandedThis = expanded[i];
+                      return (
+                        <div key={i} className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200 hover:shadow-md transition-all duration-200">
+                          <div className="flex items-start gap-4">
+                            {a.imageUrl && (
+                              <div className="flex-shrink-0">
+                                <img src={a.imageUrl} alt="Анализ растения" className="w-16 h-16 rounded-lg object-cover border-2 border-green-200 shadow-sm" />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm text-gray-600 mb-2">
+                                {new Date(a.createdAt).toLocaleString('ru-RU', { 
+                                  year: 'numeric', 
+                                  month: 'long', 
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                              <div className="text-gray-800 whitespace-pre-line leading-relaxed">
+                                {isLong && !expandedThis ? collapsedText : a.result || 'Без результата'}
+                              </div>
+                              {isLong && (
+                                <button
+                                  className="mt-3 text-green-600 hover:text-green-700 font-medium text-sm flex items-center gap-1 transition-colors duration-200"
+                                  onClick={() => setExpanded(e => ({ ...e, [i]: !e[i] }))}
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={expandedThis ? "M5 15l7-7 7 7" : "M19 9l-7 7-7-7"} />
+                                  </svg>
+                                  {expandedThis ? 'Свернуть' : 'Показать полностью'}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
-              <div className="text-green-900 font-mono text-base break-all">{profile.email}</div>
-              <div className="text-xs text-zinc-500 mt-1">Зарегистрирован: {new Date(profile.createdAt).toLocaleDateString()}</div>
-            </div>
-            {/* Статистика */}
-            <div className="w-full mb-4 flex flex-col items-center">
-              <div className="text-green-800 font-semibold text-lg">Анализов: {profile.analysisCount}</div>
-            </div>
-            {/* История анализов */}
-            <div className="w-full mb-4">
-              <div className="font-semibold text-green-700 mb-2">Последние анализы:</div>
-              {profile.analyses.length === 0 ? (
-                <div className="text-zinc-400 text-sm">Нет истории анализов</div>
-              ) : (
-                <ul className="flex flex-col gap-2">
-                  {profile.analyses.map((a, i) => {
-                    const isLong = (a.result || '').length > 180 || (a.result || '').split('\n').length > 3;
-                    const collapsedText = (a.result || '').split('\n').slice(0, 3).join('\n').slice(0, 180) + (isLong ? '...' : '');
-                    const expandedThis = expanded[i];
-                    return (
-                      <li key={i} className="bg-green-50 rounded p-2 text-green-900 text-sm flex items-center gap-2 border border-green-100">
-                        {a.imageUrl && <img src={a.imageUrl} alt="img" className="w-8 h-8 rounded object-cover border border-green-200" />}
-                        <div className="flex-1">
-                          <div className="font-mono break-words whitespace-pre-line">
-                            {isLong && !expandedThis ? collapsedText : a.result || 'Без результата'}
-                          </div>
-                          <div className="text-xs text-zinc-400 mt-1">{new Date(a.createdAt).toLocaleString()}</div>
-                          {isLong && (
-                            <button
-                              className="text-green-700 underline text-xs mt-1 hover:text-green-900 transition"
-                              onClick={() => setExpanded(e => ({ ...e, [i]: !e[i] }))}
-                            >
-                              {expandedThis ? 'Свернуть' : 'Показать полностью'}
-                            </button>
-                          )}
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-            {/* Ачивки */}
-            <div className="w-full mb-4">
-              <div className="font-semibold text-green-700 mb-2">Достижения:</div>
-              {profile.achievements.length === 0 ? (
-                <div className="text-zinc-400 text-sm">Нет достижений</div>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {profile.achievements.map((ach, i) => (
-                    <div key={i} className="flex items-center gap-1 bg-green-100 rounded px-2 py-1 text-green-800 text-xs">
-                      <span>{ach.icon || '🏅'}</span>
-                      <span>{ach.label}</span>
-                    </div>
-                  ))}
+
+              {/* Достижения */}
+              <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-green-100">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800">Достижения</h3>
                 </div>
-              )}
+
+                {profile.achievements.length === 0 ? (
+                  <div className="text-center py-8">
+                    <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                    <p className="text-gray-500">Достижения пока не получены</p>
+                    <p className="text-gray-400 text-sm">Продолжайте анализировать растения для получения достижений</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {profile.achievements.map((ach, i) => (
+                      <div key={i} className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-4 border border-yellow-200 hover:shadow-md transition-all duration-200">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
+                            <span className="text-lg">{ach.icon || '🏅'}</span>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-800">{ach.label}</h4>
+                            <p className="text-xs text-gray-500">
+                              Получено: {new Date(ach.achievedAt).toLocaleDateString('ru-RU')}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Кнопка выхода */}
+              <div className="text-center">
+                <button 
+                  onClick={handleLogout} 
+                  className="group inline-flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-6 rounded-xl hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transform hover:-translate-y-0.5 transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
+                  <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Выйти из аккаунта
+                </button>
+              </div>
             </div>
-            <button onClick={handleLogout} className="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 w-full mt-2">Выйти</button>
-          </>
-        )}
+          )}
+        </div>
       </div>
     </main>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <ProtectedRoute>
+      <ProfileContent />
+    </ProtectedRoute>
   );
 } 

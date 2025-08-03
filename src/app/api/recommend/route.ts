@@ -12,13 +12,13 @@ const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 export async function POST(req: NextRequest) {
   const auth = req.headers.get("authorization");
   if (!auth || !auth.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Нет токена" }, { status: 401 });
+    return NextResponse.json({ error: "Требуется авторизация" }, { status: 401 });
   }
   const token = auth.slice(7);
   try {
     jwt.verify(token, JWT_SECRET);
   } catch {
-    return NextResponse.json({ error: "Неверный токен" }, { status: 401 });
+    return NextResponse.json({ error: "Требуется авторизация" }, { status: 401 });
   }
 
   const { imageUrl, comment } = await req.json();

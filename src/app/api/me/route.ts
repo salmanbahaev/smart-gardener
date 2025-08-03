@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET as string;
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization");
   if (!auth || !auth.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Нет токена" }, { status: 401 });
+    return NextResponse.json({ error: "Требуется авторизация" }, { status: 401 });
   }
   const token = auth.slice(7);
   try {
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const auth = req.headers.get("authorization");
   if (!auth || !auth.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Нет токена" }, { status: 401 });
+    return NextResponse.json({ error: "Требуется авторизация" }, { status: 401 });
   }
   const token = auth.slice(7);
   try {
