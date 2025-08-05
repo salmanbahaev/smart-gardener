@@ -29,7 +29,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className={`${inter.variable} ${firaMono.variable} antialiased bg-gradient-to-br from-slate-50 to-zinc-100 min-h-full`}
       >
         <Navbar />
-        {children}
+        <main className="pt-20">
+          {children}
+        </main>
       </body>
     </html>
   );

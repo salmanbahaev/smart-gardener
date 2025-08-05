@@ -30,6 +30,9 @@ export default function UploadPage() {
   const [isProcessing, setIsProcessing] = useState(false); // блокировка кнопки во время stop
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  
+  // Drag and drop states
+  const [isDragOver, setIsDragOver] = useState(false);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     console.log('handleFileChange called');
@@ -50,6 +53,43 @@ export default function UploadPage() {
       setUploadedUrl(null);
       setRecommendations(null);
       setError(null);
+    }
+  }
+
+  // Drag and drop handlers
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+    
+    if (imageFile) {
+      setPreview(URL.createObjectURL(imageFile));
+      setFile(imageFile);
+      setUploadedUrl(null);
+      setRecommendations(null);
+      setError(null);
+      showToast("Файл добавлен!", "success");
+      // Автоматически загружаем файл
+      setTimeout(() => {
+        handleSubmitWithFile(imageFile);
+      }, 0);
+    } else {
+      showToast("Пожалуйста, перетащите изображение", "error");
     }
   }
 
@@ -341,16 +381,34 @@ export default function UploadPage() {
                     ref={inputRef}
                     id="plant-photo-input"
                   />
-                  {/* Кнопка загрузки из галереи */}
-                  <label
-                    htmlFor="plant-photo-input"
-                    className="group flex flex-col items-center justify-center gap-3 px-8 py-8 rounded-2xl bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 font-bold shadow-lg hover:shadow-xl hover:from-green-200 hover:to-emerald-200 active:from-green-300 active:to-emerald-300 transition-all duration-200 cursor-pointer border-2 border-green-200 hover:border-green-400 text-lg w-full text-center transform hover:-translate-y-1"
+                  {/* Drag and Drop область */}
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`group flex flex-col items-center justify-center gap-3 px-8 py-8 rounded-2xl text-green-800 font-bold shadow-lg transition-all duration-200 cursor-pointer border-2 text-lg w-full text-center transform hover:-translate-y-1 ${
+                      isDragOver 
+                        ? 'bg-gradient-to-r from-green-300 to-emerald-300 border-green-500 shadow-2xl scale-105' 
+                        : 'bg-gradient-to-r from-green-100 to-emerald-100 border-green-200 hover:shadow-xl hover:from-green-200 hover:to-emerald-200 active:from-green-300 active:to-emerald-300 hover:border-green-400'
+                    }`}
                   >
-                    <svg className="w-12 h-12 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    Загрузить фото растения
-                  </label>
+                    {isDragOver ? (
+                      <>
+                        <svg className="w-12 h-12 mb-2 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <span className="text-lg">Отпустите файл здесь</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-12 h-12 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <span>Загрузить фото растения</span>
+                        <span className="text-sm font-normal text-green-600 mt-2">или перетащите файл сюда</span>
+                      </>
+                    )}
+                  </div>
                   
                   {/* Кнопка сделать фото (только для мобильных устройств) */}
                   <input

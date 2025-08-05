@@ -1,0 +1,170 @@
+'use client';
+
+import { useState } from 'react';
+import ActionButton from './ActionButton';
+import { Plant } from '@/types/game';
+
+interface PlantCardProps {
+  plant: Plant;
+  onAction: (plantId: string, actionType: 'water' | 'fertilize' | 'prune') => void;
+  isSelected?: boolean;
+  onSelect?: () => void;
+}
+
+export default function PlantCard({ plant, onAction, isSelected, onSelect }: PlantCardProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleAction = async (actionType: 'water' | 'fertilize' | 'prune') => {
+    setIsLoading(true);
+    try {
+      await onAction(plant.plantId.toString(), actionType);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getPlantIcon = (type: string) => {
+    switch (type) {
+      case 'orchid':
+        return '🌸';
+      case 'cactus':
+        return '🌵';
+      default:
+        return '🌱';
+    }
+  };
+
+  const getHealthColor = (health: number) => {
+    if (health >= 80) return 'text-green-500';
+    if (health >= 60) return 'text-yellow-500';
+    if (health >= 40) return 'text-orange-500';
+    return 'text-red-500';
+  };
+
+  const getLevelColor = (level: number) => {
+    if (level >= 80) return 'text-purple-500';
+    if (level >= 60) return 'text-blue-500';
+    if (level >= 40) return 'text-green-500';
+    if (level >= 20) return 'text-yellow-500';
+    return 'text-gray-500';
+  };
+
+  const formatLastAction = (date: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - new Date(date).getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    
+    if (hours < 1) return 'Только что';
+    if (hours < 24) return `${hours}ч назад`;
+    const days = Math.floor(hours / 24);
+    return `${days}д назад`;
+  };
+
+  return (
+    <div 
+      className={`bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg transition-all duration-300 hover:shadow-xl cursor-pointer ${
+        isSelected ? 'ring-2 ring-green-500' : ''
+      }`}
+      onClick={onSelect}
+    >
+      {/* Заголовок растения */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          <div className="text-3xl">{getPlantIcon(plant.type)}</div>
+          <div>
+            <h3 className="font-semibold text-gray-800">{plant.name}</h3>
+            <p className="text-sm text-gray-500 capitalize">{plant.type}</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className={`text-lg font-bold ${getLevelColor(plant.virtualLevel)}`}>
+            Ур. {plant.virtualLevel}
+          </div>
+          <div className={`text-sm ${getHealthColor(plant.health)}`}>
+            {plant.health}% здоровья
+          </div>
+        </div>
+      </div>
+
+      {/* Прогресс-бар уровня */}
+      <div className="mb-4">
+        <div className="flex justify-between text-sm text-gray-600 mb-1">
+          <span>Уровень</span>
+          <span>{plant.virtualLevel}/100</span>
+        </div>
+        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div 
+            className={`h-full bg-gradient-to-r from-green-500 to-emerald-600 transition-all duration-500`}
+            style={{ width: `${Math.min(plant.virtualLevel, 100)}%` }}
+          ></div>
+        </div>
+      </div>
+
+      {/* Прогресс-бар здоровья */}
+      <div className="mb-4">
+        <div className="flex justify-between text-sm text-gray-600 mb-1">
+          <span>Здоровье</span>
+          <span>{plant.health}%</span>
+        </div>
+        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div 
+            className={`h-full transition-all duration-500 ${
+              plant.health >= 80 ? 'bg-green-500' :
+              plant.health >= 60 ? 'bg-yellow-500' :
+              plant.health >= 40 ? 'bg-orange-500' : 'bg-red-500'
+            }`}
+            style={{ width: `${plant.health}%` }}
+          ></div>
+        </div>
+      </div>
+
+      {/* Последние действия */}
+      <div className="mb-4 text-xs text-gray-500 space-y-1">
+        <div>💧 Полив: {formatLastAction(plant.lastWatered)}</div>
+        <div>🌱 Подкормка: {formatLastAction(plant.lastFertilized)}</div>
+        <div>✂️ Обрезка: {formatLastAction(plant.lastPruned)}</div>
+      </div>
+
+      {/* Достижения */}
+      {plant.achievements.length > 0 && (
+        <div className="mb-4">
+          <div className="text-sm text-gray-600 mb-2">Достижения:</div>
+          <div className="flex flex-wrap gap-1">
+            {plant.achievements.slice(0, 3).map((achievement, index) => (
+              <span key={index} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                🏆
+              </span>
+            ))}
+            {plant.achievements.length > 3 && (
+              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                +{plant.achievements.length - 3}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Кнопки действий */}
+      <div className="grid grid-cols-3 gap-2">
+        <ActionButton
+          type="water"
+          onClick={() => handleAction('water')}
+          disabled={isLoading}
+          loading={isLoading}
+        />
+        <ActionButton
+          type="fertilize"
+          onClick={() => handleAction('fertilize')}
+          disabled={isLoading}
+          loading={isLoading}
+        />
+        <ActionButton
+          type="prune"
+          onClick={() => handleAction('prune')}
+          disabled={isLoading}
+          loading={isLoading}
+        />
+      </div>
+    </div>
+  );
+} 

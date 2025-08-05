@@ -1,10 +1,18 @@
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
+
+  function handleLogout() {
+    localStorage.removeItem("token");
+    router.push("/login");
+  }
+
   return (
-    <nav className="w-full bg-white/80 backdrop-blur-md border-b border-green-100 text-gray-800 py-4 px-6 flex items-center justify-between shadow-sm relative z-50">
+    <nav className="fixed top-0 left-0 right-0 w-full bg-white/90 backdrop-blur-md border-b border-green-100 text-gray-800 py-4 px-6 flex items-center justify-between shadow-lg z-50">
       {/* Логотип */}
       <div className="flex items-center space-x-3">
         <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
@@ -32,18 +40,67 @@ export default function Navbar() {
           </svg>
           <span>Рекомендации</span>
         </Link>
+        <Link href="/achievements" className="flex items-center space-x-2 px-4 py-2 rounded-xl hover:bg-green-50 hover:text-green-700 transition-all duration-200 font-medium">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Достижения</span>
+        </Link>
+        <Link href="/challenges" className="flex items-center space-x-2 px-4 py-2 rounded-xl hover:bg-green-50 hover:text-green-700 transition-all duration-200 font-medium">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span>Челленджи</span>
+        </Link>
+        <Link href="/garden" className="flex items-center space-x-2 px-4 py-2 rounded-xl hover:bg-green-50 hover:text-green-700 transition-all duration-200 font-medium">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <span>Сад</span>
+        </Link>
         <Link href="/journal" className="flex items-center space-x-2 px-4 py-2 rounded-xl hover:bg-green-50 hover:text-green-700 transition-all duration-200 font-medium">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
           <span>Журнал</span>
         </Link>
-        <Link href="/profile" className="flex items-center space-x-2 px-4 py-2 rounded-xl hover:bg-green-50 hover:text-green-700 transition-all duration-200 font-medium">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-          <span>Профиль</span>
-        </Link>
+        
+        {/* Profile dropdown - CSS hover approach */}
+        <div className="relative group">
+          <button className="flex items-center space-x-2 px-4 py-2 rounded-xl hover:bg-green-50 hover:text-green-700 transition-all duration-200 font-medium">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span>Профиль</span>
+            <svg className="w-4 h-4 transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          {/* Dropdown menu */}
+          <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-green-100 py-2 z-50 opacity-0 invisible scale-y-95 transform origin-top transition-all duration-300 ease-in-out group-hover:opacity-100 group-hover:visible group-hover:scale-y-100">
+            <Link 
+              href="/profile" 
+              className="flex items-center space-x-3 px-4 py-3 hover:bg-green-50 hover:text-green-700 transition-all duration-200"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span>Мой профиль</span>
+            </Link>
+            <button 
+              onClick={() => {
+                handleLogout();
+              }}
+              className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-50 hover:text-red-700 transition-all duration-200 text-left"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span>Выйти</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Burger icon */}
@@ -84,6 +141,36 @@ export default function Navbar() {
           <span>Рекомендации</span>
         </Link>
         <Link 
+          href="/achievements" 
+          className="flex items-center space-x-3 px-6 py-3 hover:bg-green-50 hover:text-green-700 transition-all duration-200" 
+          onClick={() => setOpen(false)}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Достижения</span>
+        </Link>
+        <Link 
+          href="/challenges" 
+          className="flex items-center space-x-3 px-6 py-3 hover:bg-green-50 hover:text-green-700 transition-all duration-200" 
+          onClick={() => setOpen(false)}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span>Челленджи</span>
+        </Link>
+        <Link 
+          href="/garden" 
+          className="flex items-center space-x-3 px-6 py-3 hover:bg-green-50 hover:text-green-700 transition-all duration-200" 
+          onClick={() => setOpen(false)}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <span>Сад</span>
+        </Link>
+        <Link 
           href="/journal" 
           className="flex items-center space-x-3 px-6 py-3 hover:bg-green-50 hover:text-green-700 transition-all duration-200" 
           onClick={() => setOpen(false)}
@@ -103,6 +190,18 @@ export default function Navbar() {
           </svg>
           <span>Профиль</span>
         </Link>
+        <button 
+          onClick={() => {
+            handleLogout();
+            setOpen(false);
+          }}
+          className="flex items-center space-x-3 px-6 py-3 hover:bg-red-50 hover:text-red-700 transition-all duration-200 text-left"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          <span>Выйти</span>
+        </button>
       </div>
     </nav>
   );
