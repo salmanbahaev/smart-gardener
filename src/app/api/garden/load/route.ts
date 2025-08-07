@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
-import { Garden } from '@/models/Garden';
-import { User } from '@/models/User';
-import { Achievement } from '@/models/Achievement';
+import '@/lib/models'; // Инициализируем все модели
+import { Garden, User, Achievement } from '@/lib/models';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
@@ -41,6 +40,7 @@ export async function GET(request: NextRequest) {
     let garden = await Garden.findOne({ userId: user._id }).populate('plants.achievements');
     
     if (!garden) {
+      const now = new Date();
       // Создаем новый сад с базовыми растениями
       garden = new Garden({
         userId: user._id,
@@ -50,14 +50,22 @@ export async function GET(request: NextRequest) {
             virtualLevel: 1,
             name: "Орхидея",
             type: "orchid",
-            health: 100
+            health: 100,
+            lastWatered: now,
+            lastFertilized: now,
+            lastPruned: now,
+            lastAction: now
           },
           {
             plantId: new (await import('mongoose')).Types.ObjectId(),
             virtualLevel: 1,
             name: "Кактус",
             type: "cactus",
-            health: 100
+            health: 100,
+            lastWatered: now,
+            lastFertilized: now,
+            lastPruned: now,
+            lastAction: now
           }
         ],
         currency: 50, // Начальная валюта
@@ -79,7 +87,11 @@ export async function GET(request: NextRequest) {
         plants: garden.plants.map(plant => ({
           ...plant.toObject(),
           _id: plant._id.toString(),
-          plantId: plant.plantId.toString()
+          plantId: plant.plantId.toString(),
+          lastWatered: plant.lastWatered.toISOString(),
+          lastFertilized: plant.lastFertilized.toISOString(),
+          lastPruned: plant.lastPruned.toISOString(),
+          lastAction: plant.lastAction.toISOString()
         }))
       }
     });

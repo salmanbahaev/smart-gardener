@@ -1,4 +1,5 @@
-import mongoose, { Schema, models } from "mongoose";
+import mongoose, { Schema, models, Document } from "mongoose";
+import { IAchievement } from "@/types/models";
 
 const CriteriaSchema = new Schema({
   type: { 
@@ -35,4 +36,4 @@ const AchievementSchema = new Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-export const Achievement = models.Achievement || mongoose.model("Achievement", AchievementSchema); 
+export const Achievement = models.Achievement || mongoose.model<IAchievement & Document>("Achievement", AchievementSchema); 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
-import { Achievement } from '@/models/Achievement';
-import { Challenge } from '@/models/Challenge';
+import '@/lib/models'; // Инициализируем все модели
+import { Achievement, Challenge } from '@/lib/models';
 
 export async function POST(request: NextRequest) {
   try {

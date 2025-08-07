@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
-import { User } from "@/models/User";
+import '@/lib/models'; // Инициализируем все модели
+import { User } from "@/lib/models";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {

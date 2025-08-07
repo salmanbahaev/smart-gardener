@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
-import { Garden } from '@/models/Garden';
-import { User } from '@/models/User';
-import { Achievement } from '@/models/Achievement';
+import '@/lib/models'; // Инициализируем все модели
+import { Garden, User, Achievement } from '@/lib/models';
 import jwt from 'jsonwebtoken';
 import { Types } from 'mongoose';
 

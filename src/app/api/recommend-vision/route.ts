@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { OpenAI } from "openai";
 import { connectToDatabase } from "@/lib/db";
-import { User } from "@/models/User";
+import '@/lib/models'; // Инициализируем все модели
+import { User } from "@/lib/models";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY as string;

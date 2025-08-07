@@ -1,4 +1,5 @@
-import mongoose, { Schema, models } from "mongoose";
+import mongoose, { Schema, models, Document } from "mongoose";
+import { IGarden } from "@/types/models";
 
 const PlantSchema = new Schema({
   plantId: { type: Schema.Types.ObjectId, required: true },
@@ -35,4 +36,4 @@ GardenSchema.virtual('averageLevel').get(function() {
   return Math.round(totalLevel / this.plants.length);
 });
 
-export const Garden = models.Garden || mongoose.model("Garden", GardenSchema); 
+export const Garden = models.Garden || mongoose.model<IGarden & Document>("Garden", GardenSchema); 

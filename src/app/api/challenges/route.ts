@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
-import { Challenge } from '@/models/Challenge';
-import { UserChallenge } from '@/models/UserChallenge';
-import { User } from '@/models/User';
+import '@/lib/models'; // Инициализируем все модели
+import { Challenge, UserChallenge, User } from '@/lib/models';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
@@ -56,6 +55,17 @@ export async function GET(request: NextRequest) {
     const challengesWithProgress = activeChallenges.map(challenge => {
       const userChallenge = userChallengeMap.get(challenge._id.toString());
       
+      // Вычисляем виртуальные поля вручную
+      const isCurrentlyActive = challenge.isActive && now >= challenge.startDate && now <= challenge.endDate;
+      const timeRemaining = now > challenge.endDate ? 0 : challenge.endDate.getTime() - now.getTime();
+      
+      // Вычисляем общий прогресс пользователя
+      let overallProgress = 0;
+      if (userChallenge && userChallenge.progress && userChallenge.progress.length > 0) {
+        const completed = userChallenge.progress.filter(p => p.completed).length;
+        overallProgress = Math.round((completed / userChallenge.progress.length) * 100);
+      }
+      
       return {
         _id: challenge._id.toString(),
         code: challenge.code,
@@ -69,12 +79,12 @@ export async function GET(request: NextRequest) {
         category: challenge.category,
         currentParticipants: challenge.currentParticipants,
         maxParticipants: challenge.maxParticipants,
-        isCurrentlyActive: challenge.isCurrentlyActive,
-        timeRemaining: challenge.timeRemaining,
+        isCurrentlyActive,
+        timeRemaining,
         userProgress: userChallenge ? {
           isParticipating: true,
           isCompleted: userChallenge.isCompleted,
-          overallProgress: userChallenge.overallProgress,
+          overallProgress,
           progress: userChallenge.progress,
           joinedAt: userChallenge.joinedAt,
           completedAt: userChallenge.completedAt,

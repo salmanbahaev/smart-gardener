@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ActionButton from './ActionButton';
 import { Plant } from '@/types/game';
 
@@ -13,6 +13,16 @@ interface PlantCardProps {
 
 export default function PlantCard({ plant, onAction, isSelected, onSelect }: PlantCardProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setCurrentTime(new Date());
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Обновляем каждую минуту
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleAction = async (actionType: 'water' | 'fertilize' | 'prune') => {
     setIsLoading(true);
@@ -49,9 +59,10 @@ export default function PlantCard({ plant, onAction, isSelected, onSelect }: Pla
     return 'text-gray-500';
   };
 
-  const formatLastAction = (date: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - new Date(date).getTime();
+  const formatLastAction = (date: Date | string) => {
+    if (!currentTime) return 'Загрузка...';
+    
+    const diff = currentTime.getTime() - new Date(date).getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     
     if (hours < 1) return 'Только что';

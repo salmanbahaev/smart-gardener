@@ -5,14 +5,14 @@ export interface Plant {
   _id?: Types.ObjectId;
   plantId: Types.ObjectId;
   virtualLevel: number;
-  lastAction: Date;
+  lastAction: Date | string;
   achievements: Types.ObjectId[];
   name: string;
   type: string;
   health: number;
-  lastWatered: Date;
-  lastFertilized: Date;
-  lastPruned: Date;
+  lastWatered: Date | string;
+  lastFertilized: Date | string;
+  lastPruned: Date | string;
 }
 
 // Типы для сада

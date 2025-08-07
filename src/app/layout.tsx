@@ -1,7 +1,6 @@
-'use client';
 import { Inter, Fira_Mono } from 'next/font/google';
 import './globals.css';
-import Navbar from "@/components/Navbar";
+import NavbarWrapper from "@/components/NavbarWrapper";
 
 const inter = Inter({
   subsets: ['latin', 'cyrillic'],
@@ -28,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className={`${inter.variable} ${firaMono.variable} antialiased bg-gradient-to-br from-slate-50 to-zinc-100 min-h-full`}
       >
-        <Navbar />
+        <NavbarWrapper />
         <main className="pt-20">
           {children}
         </main>

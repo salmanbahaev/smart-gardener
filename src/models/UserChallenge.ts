@@ -1,4 +1,5 @@
-import mongoose, { Schema, models } from "mongoose";
+import mongoose, { Schema, models, Document } from "mongoose";
+import { IUserChallenge } from "@/types/models";
 
 const ProgressSchema = new Schema({
   action: { type: String, required: true },
@@ -27,4 +28,4 @@ UserChallengeSchema.virtual('overallProgress').get(function() {
   return Math.round((completed / this.progress.length) * 100);
 });
 
-export const UserChallenge = models.UserChallenge || mongoose.model("UserChallenge", UserChallengeSchema); 
+export const UserChallenge = models.UserChallenge || mongoose.model<IUserChallenge & Document>("UserChallenge", UserChallengeSchema); 

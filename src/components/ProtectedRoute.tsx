@@ -9,10 +9,13 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
   const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    setMounted(true);
+    
+    const token = localStorage.getItem("token");
     if (!token) {
       router.push("/login");
     } else {
@@ -20,8 +23,8 @@ export default function ProtectedRoute({ children, fallback }: ProtectedRoutePro
     }
   }, [router]);
 
-  // Показываем загрузку во время проверки авторизации
-  if (isAuthChecking) {
+  // Показываем загрузку до монтирования компонента
+  if (!mounted || isAuthChecking) {
     return fallback || (
       <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-green-50">
         <div className="bg-white rounded shadow p-6 w-full max-w-md">

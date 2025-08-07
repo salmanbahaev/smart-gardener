@@ -31,6 +31,11 @@ function ProfileContent() {
   const [expanded, setExpanded] = useState<{ [key: number]: boolean }>({});
 
   useEffect(() => {
+    // Проверяем, что мы на клиенте
+    if (typeof window === "undefined") {
+      return;
+    }
+    
     const token = localStorage.getItem("token");
     if (!token) {
       router.push("/login");
@@ -50,7 +55,9 @@ function ProfileContent() {
       })
       .catch(() => {
         setError("Ошибка авторизации");
-        localStorage.removeItem("token");
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("token");
+        }
         router.push("/login");
       });
   }, [router]);

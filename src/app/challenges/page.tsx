@@ -27,6 +27,11 @@ function ChallengesContent() {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
+    // Проверяем, что мы на клиенте
+    if (typeof window === "undefined") {
+      return;
+    }
+    
     const token = localStorage.getItem("token");
     if (!token) {
       router.push("/login");
@@ -39,7 +44,7 @@ function ChallengesContent() {
   const loadChallenges = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const response = await fetch('/api/challenges', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -65,7 +70,7 @@ function ChallengesContent() {
 
   const handleParticipate = async (challengeId: string) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const response = await fetch('/api/challenges/participate', {
         method: 'POST',
         headers: {

@@ -7,7 +7,9 @@ export default function Navbar() {
   const router = useRouter();
 
   function handleLogout() {
-    localStorage.removeItem("token");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+    }
     router.push("/login");
   }
 

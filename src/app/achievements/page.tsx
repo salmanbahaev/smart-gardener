@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Loader from '@/components/Loader';
 import Toast from '@/components/Toast';
@@ -22,7 +21,6 @@ interface Achievement {
 }
 
 export default function AchievementsPage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,20 +28,34 @@ export default function AchievementsPage() {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
-    if (status === 'loading') return;
+    // Проверяем, что мы на клиенте
+    if (typeof window === "undefined") {
+      return;
+    }
     
-    if (status === 'unauthenticated') {
-      router.push('/login');
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
       return;
     }
 
     loadAchievements();
-  }, [status, router]);
+  }, [router]);
 
   const loadAchievements = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/achievements');
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      if (!token) {
+        router.push("/login");
+        return;
+      }
+
+      const response = await fetch('/api/achievements', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       
       if (!response.ok) {
         throw new Error('Failed to load achievements');
@@ -92,7 +104,7 @@ export default function AchievementsPage() {
     }
   };
 
-  if (status === 'loading' || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 flex items-center justify-center">
         <Loader text="Загрузка достижений..." />

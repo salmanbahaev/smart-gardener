@@ -99,7 +99,7 @@ export default function UploadPage() {
     setRecommendations(null);
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       if (!token) {
         setError("Требуется авторизация");
         showToast("Требуется авторизация", "error");
@@ -140,7 +140,7 @@ export default function UploadPage() {
     setRecommendations(null);
     setError(null);
     try {
-      const token = localStorage.getItem("token");
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const formData = new FormData();
       formData.append("file", file);
       const res = await fetch("/api/recommend-vision", {

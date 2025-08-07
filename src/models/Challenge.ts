@@ -1,4 +1,5 @@
-import mongoose, { Schema, models } from "mongoose";
+import mongoose, { Schema, models, Document } from "mongoose";
+import { IChallenge } from "@/types/models";
 
 const RequirementSchema = new Schema({
   action: { 
@@ -51,4 +52,4 @@ ChallengeSchema.virtual('timeRemaining').get(function() {
   return this.endDate.getTime() - now.getTime();
 });
 
-export const Challenge = models.Challenge || mongoose.model("Challenge", ChallengeSchema); 
+export const Challenge = models.Challenge || mongoose.model<IChallenge & Document>("Challenge", ChallengeSchema); 

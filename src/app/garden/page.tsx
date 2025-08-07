@@ -32,7 +32,7 @@ function GardenContent() {
         return res.json();
       })
       .then((data) => {
-        setGarden(data);
+        setGarden(data.garden);
       })
       .catch((err) => {
         setError(err.message);
@@ -157,12 +157,12 @@ function GardenContent() {
                   <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  <span className="font-semibold text-purple-700">Растений: {garden.plants.length}</span>
+                  <span className="font-semibold text-purple-700">Растений: {garden.plants?.length || 0}</span>
                 </div>
               </div>
 
               <GardenLayout 
-                plants={garden.plants} 
+                plants={garden.plants || []} 
                 onPlantAction={handlePlantAction}
               />
             </div>
