@@ -1,7 +1,48 @@
-'use client';
+"use client";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+type Analysis = {
+  imageUrl?: string;
+  result?: string;
+  createdAt?: string;
+};
+
 export default function RecommendationsPage() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [last, setLast] = useState<Analysis | null>(null);
+
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      setError("Требуется авторизация");
+      setLoading(false);
+      return;
+    }
+    void loadMe(token);
+  }, []);
+
+  async function loadMe(token: string) {
+    try {
+      const res = await fetch("/api/me", { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Ошибка загрузки профиля");
+      const analyses: Analysis[] = Array.isArray(data.analyses) ? data.analyses : [];
+      setLast(analyses[0] || null);
+    } catch (e: any) {
+      setError(e.message || "Ошибка загрузки профиля");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const short = useMemo(() => {
+    if (!last?.result) return "";
+    return last.result.split(/\r?\n/).slice(0, 12).join("\n");
+  }, [last]);
+
   return (
     <ProtectedRoute>
       <main className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 relative overflow-hidden">
@@ -12,41 +53,46 @@ export default function RecommendationsPage() {
         </div>
 
         {/* Основной контент */}
-        <div className="relative z-10 flex min-h-screen flex-col items-center justify-center p-6">
+        <div className="relative z-10 flex min-h-screen flex-col items-center p-6">
           <div className="w-full max-w-2xl">
             {/* Заголовок */}
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-lg mb-6">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
+                <span className="text-2xl text-white">🌿</span>
               </div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
                 Рекомендации по уходу
               </h1>
-              <p className="text-gray-600">Персональные советы для ваших растений</p>
+              <p className="text-gray-600">Итоги последнего анализа по фото</p>
             </div>
 
             {/* Основной контент */}
             <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-green-100">
-              <div className="text-center py-12">
-                <div className="w-24 h-24 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <svg className="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
+              {loading && <div className="py-16 text-center text-gray-600">Загрузка рекомендаций…</div>}
+              {!loading && error && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">{error}</div>
+              )}
+              {!loading && !error && !last && (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-3">📷</div>
+                  <div className="text-gray-700 font-semibold mb-2">Нет данных анализа</div>
+                  <p className="text-gray-600 mb-4">Сделайте фото растения, чтобы получить рекомендации</p>
+                  <Link href="/upload" className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm">Загрузить фото</Link>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">Функция в разработке</h2>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                  Здесь будут появляться индивидуальные рекомендации по уходу за растением после распознавания и анализа состояния. 
-                  Функция находится в разработке и будет доступна в ближайшее время.
-                </p>
-                <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>Скоро будет доступно</span>
+              )}
+
+              {!loading && !error && last && (
+                <div className="space-y-4">
+                  {last.imageUrl && (
+                    <img src={last.imageUrl} alt="Растение" className="w-full rounded-xl border" />
+                  )}
+                  <div className="text-gray-800 whitespace-pre-line text-sm">{short}</div>
+                  <div className="flex gap-2">
+                    <Link href="/upload" className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm">Новый анализ</Link>
+                    <Link href="/journal" className="px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm">Открыть журнал</Link>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Создаем прогресс для пользователя
-    const progress = challenge.requirements.map(req => ({
+    const progress = challenge.requirements.map((req: { action: string; count: number }) => ({
       action: req.action,
       currentCount: 0,
       requiredCount: req.count,

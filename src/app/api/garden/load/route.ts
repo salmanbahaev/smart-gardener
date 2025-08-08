@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
 
     // Вычисляем средний уровень растений
     const averageLevel = garden.plants.length > 0 
-      ? Math.round(garden.plants.reduce((sum, plant) => sum + plant.virtualLevel, 0) / garden.plants.length)
+      ? Math.round((garden.plants as Array<{ virtualLevel: number }>).reduce((sum, plant) => sum + plant.virtualLevel, 0) / garden.plants.length)
       : 0;
 
     return NextResponse.json({
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
       garden: {
         ...garden.toObject(),
         averageLevel,
-        plants: garden.plants.map(plant => ({
+        plants: (garden.plants as Array<any>).map((plant: any) => ({
           ...plant.toObject(),
           _id: plant._id.toString(),
           plantId: plant.plantId.toString(),

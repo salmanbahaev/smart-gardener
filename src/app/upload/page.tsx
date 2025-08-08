@@ -386,11 +386,16 @@ export default function UploadPage() {
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
+                    onClick={() => inputRef.current?.click()}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inputRef.current?.click(); } }}
                     className={`group flex flex-col items-center justify-center gap-3 px-8 py-8 rounded-2xl text-green-800 font-bold shadow-lg transition-all duration-200 cursor-pointer border-2 text-lg w-full text-center transform hover:-translate-y-1 ${
                       isDragOver 
                         ? 'bg-gradient-to-r from-green-300 to-emerald-300 border-green-500 shadow-2xl scale-105' 
                         : 'bg-gradient-to-r from-green-100 to-emerald-100 border-green-200 hover:shadow-xl hover:from-green-200 hover:to-emerald-200 active:from-green-300 active:to-emerald-300 hover:border-green-400'
                     }`}
+                    role="button"
+                    aria-label="Загрузить фото растения"
+                    tabIndex={0}
                   >
                     {isDragOver ? (
                       <>

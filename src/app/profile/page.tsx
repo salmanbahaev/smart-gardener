@@ -18,17 +18,24 @@ interface Achievement {
 function ProfileContent() {
   const [profile, setProfile] = useState<{
     email: string;
+    name?: string;
+    phone?: string;
+    telegram?: string;
+    siteType?: 'garden' | 'pot';
     avatar: string;
     createdAt: string;
     analysisCount: number;
     analyses: Analysis[];
     achievements: Achievement[];
+    location?: { cityName?: string; lat?: number | null; lon?: number | null; timeZone?: string } | null;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   // State для раскрытия анализов
   const [expanded, setExpanded] = useState<{ [key: number]: boolean }>({});
+  const [form, setForm] = useState<{ name: string; city: string; phone: string; telegram: string; siteType: 'garden' | 'pot' }>({ name: '', city: '', phone: '', telegram: '', siteType: 'garden' });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     // Проверяем, что мы на клиенте
@@ -52,6 +59,13 @@ function ProfileContent() {
       })
       .then((data) => {
         setProfile(data);
+        setForm({
+          name: data.name || '',
+          city: data.location?.cityName || '',
+          phone: data.phone || '',
+          telegram: data.telegram || '',
+          siteType: data.siteType || 'garden',
+        });
       })
       .catch(() => {
         setError("Ошибка авторизации");
@@ -123,7 +137,8 @@ function ProfileContent() {
 
                   {/* Информация */}
                   <div className="flex-1 text-center md:text-left">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">{profile.email}</h2>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-1">{profile.email}</h2>
+                    <div className="text-gray-700 font-medium mb-2">{form.name || 'Без имени'}</div>
                     <p className="text-gray-600 mb-4">Зарегистрирован: {new Date(profile.createdAt).toLocaleDateString('ru-RU', { 
                       year: 'numeric', 
                       month: 'long', 
@@ -138,6 +153,93 @@ function ProfileContent() {
                       <span className="font-semibold text-green-700">Анализов: {profile.analysisCount}</span>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Редактирование профиля */}
+              <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-green-100">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
+                    <span className="text-white">✏️</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800">Редактирование профиля</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Имя</label>
+                    <input
+                      value={form.name}
+                      onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white/60 focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="Как к вам обращаться"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Телефон</label>
+                    <input
+                      value={form.phone}
+                      onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white/60 focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="+7 xxx xxx xx xx"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Telegram</label>
+                    <input
+                      value={form.telegram}
+                      onChange={(e) => setForm(f => ({ ...f, telegram: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white/60 focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="@username"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Локация</label>
+                    <input
+                      value={form.city}
+                      onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white/60 focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="Город/населённый пункт"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">В следующем шаге добавим автодополнение и координаты</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Тип выращивания</label>
+                    <select
+                      value={form.siteType}
+                      onChange={(e) => setForm(f => ({ ...f, siteType: (e.target.value as 'garden' | 'pot') }))}
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white/60 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                      <option value="garden">Огород/участок</option>
+                      <option value="pot">В горшке/контейнере</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <button
+                    disabled={saving}
+                    onClick={async () => {
+                      try {
+                        setSaving(true);
+                        const token = localStorage.getItem('token');
+                        const res = await fetch('/api/me', {
+                          method: 'PUT',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${token}`,
+                          },
+                          body: JSON.stringify({ name: form.name, phone: form.phone, telegram: form.telegram, siteType: form.siteType, location: { cityName: form.city } }),
+                        });
+                        if (res.ok) {
+                          setProfile(p => p ? { ...p, name: form.name, phone: form.phone, telegram: form.telegram, siteType: form.siteType, location: { ...(p.location || {}), cityName: form.city } } : p);
+                        }
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}
+                    className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm disabled:opacity-60"
+                  >
+                    {saving ? 'Сохранение…' : 'Сохранить изменения'}
+                  </button>
                 </div>
               </div>
 

@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       // Вычисляем общий прогресс пользователя
       let overallProgress = 0;
       if (userChallenge && userChallenge.progress && userChallenge.progress.length > 0) {
-        const completed = userChallenge.progress.filter(p => p.completed).length;
+        const completed = userChallenge.progress.filter((p: { completed: boolean }) => p.completed).length;
         overallProgress = Math.round((completed / userChallenge.progress.length) * 100);
       }
       

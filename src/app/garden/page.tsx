@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from "@/components/ProtectedRoute";
 import GardenLayout from '@/components/garden/GardenLayout';
@@ -14,33 +14,30 @@ function GardenContent() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
+    void loadGarden();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router]);
+
+  const loadGarden = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
       router.push("/login");
       return;
     }
 
-    fetch('/api/garden/load', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          throw new Error('Ошибка загрузки сада');
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setGarden(data.garden);
-      })
-      .catch((err) => {
-        setError(err.message);
-      })
-      .finally(() => {
-        setLoading(false);
+    try {
+      const res = await fetch('/api/garden/load', {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-  }, [router]);
+      if (!res.ok) throw new Error('Ошибка загрузки сада');
+      const data = await res.json();
+      setGarden(data.garden);
+    } catch (err: any) {
+      setError(err.message ?? 'Ошибка загрузки сада');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlePlantAction = async (plantId: string, action: 'water' | 'fertilize' | 'prune') => {
     const token = localStorage.getItem("token");
@@ -56,24 +53,57 @@ function GardenContent() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          plantId,
-          action
-        })
+        body: JSON.stringify({ plantId, actionType: action })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Ошибка выполнения действия');
+        const base = errorData.error || 'Ошибка выполнения действия';
+        const extra = typeof errorData.timeRemaining === 'number' ? ` Подождите ~${errorData.timeRemaining} мин.` : '';
+        throw new Error(base + extra);
       }
 
-      const result = await response.json();
-      setGarden(result.garden);
-      setToast({ message: result.message, type: 'success' });
+      await loadGarden();
+      setToast({ message: 'Действие выполнено', type: 'success' });
     } catch (err: any) {
       setToast({ message: err.message, type: 'error' });
     }
   };
+
+  const { readyCount, nextReadyMinutes } = useMemo(() => {
+    if (!garden?.plants) return { readyCount: 0, nextReadyMinutes: null as number | null };
+    const now = Date.now();
+    const oneHour = 60 * 60 * 1000;
+    let ready = 0;
+    let minRemaining: number | null = null;
+    for (const p of garden.plants) {
+      const last = new Date(p.lastAction).getTime();
+      const diff = now - last;
+      if (diff >= oneHour) {
+        ready += 1;
+      } else {
+        const remain = Math.ceil((oneHour - diff) / (60 * 1000));
+        if (minRemaining === null || remain < minRemaining) minRemaining = remain;
+      }
+    }
+    return { readyCount: ready, nextReadyMinutes: minRemaining };
+  }, [garden]);
+
+  const [todayRecs, setTodayRecs] = useState<{ recommendations: Array<{ title: string; reason: string }> } | null>(null);
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    (async () => {
+      try {
+        const res = await fetch('/api/weather/recommendations', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        setTodayRecs({ recommendations: data.recommendations || [] });
+      } catch {}
+    })();
+  }, []);
 
   if (loading) {
     return (
@@ -139,6 +169,38 @@ function GardenContent() {
 
           {garden && (
             <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-8 border border-green-100">
+              {/* Смарт-баннер */}
+              <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-emerald-100 to-teal-100 border border-emerald-200 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-500 flex items-center justify-center text-white">🌿</div>
+                  <div>
+                    <div className="font-semibold text-emerald-800">Сегодня в саду</div>
+                    <div className="text-emerald-700 text-sm">
+                      {readyCount > 0 ? `${readyCount} раст. готовы к действию` : (typeof nextReadyMinutes === 'number' ? `Следующее действие через ~${nextReadyMinutes} мин` : 'Все на таймере')}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => router.push('/upload')} className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm">Фото</button>
+                  <button onClick={() => router.push('/journal')} className="px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm">Журнал</button>
+                  <button onClick={() => router.push('/recommendations')} className="px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-sm">Советы</button>
+                </div>
+              </div>
+              {/* Что сделать сегодня */}
+              {todayRecs && todayRecs.recommendations?.length > 0 && (
+                <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
+                  <div className="font-semibold text-green-800 mb-2 flex items-center gap-2"><span>✅</span> Что сделать сегодня</div>
+                  <ul className="list-disc pl-5 space-y-1">
+                    {todayRecs.recommendations.slice(0, 3).map((r, i) => (
+                      <li key={i} className="text-sm text-green-800">
+                        <span className="font-medium">{r.title}</span>
+                        <span className="text-green-700"> — {r.reason}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {/* Статистика */}
               <div className="flex flex-wrap gap-4 mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
                 <div className="flex items-center gap-2">

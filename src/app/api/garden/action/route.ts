@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Находим растение
-    const plant = garden.plants.find(p => p.plantId.toString() === plantId);
+    const plant = garden.plants.find((p: { plantId: Types.ObjectId }) => p.plantId.toString() === plantId);
     if (!plant) {
       return NextResponse.json({ error: 'Plant not found' }, { status: 404 });
     }
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     if (timeDiff < oneHour) {
       return NextResponse.json({ 
-        error: 'Action too frequent. Please wait before next action.',
+        error: 'Действие пока недоступно. Пожалуйста, подождите перед следующим действием.',
         timeRemaining: Math.ceil((oneHour - timeDiff) / (60 * 1000))
       }, { status: 429 });
     }

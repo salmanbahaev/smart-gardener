@@ -6,6 +6,10 @@ export interface IUser {
   _id: Types.ObjectId;
   email: string;
   passwordHash: string;
+  name?: string;
+  phone?: string;
+  telegram?: string;
+  siteType?: 'garden' | 'pot';
   avatar?: string;
   createdAt: Date;
   analysisCount: number;
@@ -20,6 +24,12 @@ export interface IUser {
     icon: string;
     achievedAt: Date;
   }>;
+  location?: {
+    cityName?: string;
+    lat?: number | null;
+    lon?: number | null;
+    timeZone?: string;
+  };
 }
 
 export interface IPlant {
