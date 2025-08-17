@@ -24,6 +24,6 @@ export async function POST(req: NextRequest) {
   if (!JWT_SECRET) {
     return NextResponse.json({ error: "JWT_SECRET не задан" }, { status: 500 });
   }
-  const token = jwt.sign({ userId: user._id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
+  const token = jwt.sign({ userId: user._id, email: user.email }, JWT_SECRET, { expiresIn: "30d" });
   return NextResponse.json({ token });
 } 
