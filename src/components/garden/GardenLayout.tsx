@@ -7,21 +7,34 @@ import { Plant } from '@/types/game';
 interface GardenLayoutProps {
   plants: Plant[];
   onPlantAction: (plantId: string, actionType: 'water' | 'fertilize' | 'prune') => void;
+  onPlantDelete?: (plant: Plant) => void;
+  onAddPlant?: () => void;
 }
 
-export default function GardenLayout({ plants, onPlantAction }: GardenLayoutProps) {
+export default function GardenLayout({ plants, onPlantAction, onPlantDelete, onAddPlant }: GardenLayoutProps) {
   const [selectedPlant, setSelectedPlant] = useState<string | null>(null);
 
   return (
     <div className="space-y-6">
       {/* Заголовок секции */}
-      <div className="text-center">
+      <div className="text-center mb-6">
         <h2 className="text-2xl font-semibold text-gray-800 mb-2">
           Ваши растения
         </h2>
-        <p className="text-gray-600">
+        <p className="text-gray-600 mb-4">
           Ухаживайте за растениями, чтобы они росли и развивались
         </p>
+        {onAddPlant && (
+          <button
+            onClick={onAddPlant}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Добавить растение
+          </button>
+        )}
       </div>
 
       {/* Сетка растений */}
@@ -31,6 +44,7 @@ export default function GardenLayout({ plants, onPlantAction }: GardenLayoutProp
             key={plant._id?.toString() || plant.plantId.toString()}
             plant={plant}
             onAction={onPlantAction}
+            onDelete={onPlantDelete}
             isSelected={selectedPlant === (plant._id?.toString() || plant.plantId.toString())}
             onSelect={() => setSelectedPlant(plant._id?.toString() || plant.plantId.toString())}
           />

@@ -3,7 +3,9 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from "@/components/ProtectedRoute";
 import GardenLayout from '@/components/garden/GardenLayout';
-import { Garden } from '@/types/game';
+import AddPlantModal from '@/components/garden/AddPlantModal';
+import DeletePlantModal from '@/components/garden/DeletePlantModal';
+import { Garden, Plant } from '@/types/game';
 import Toast from '@/components/Toast';
 
 function GardenContent() {
@@ -12,6 +14,12 @@ function GardenContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  
+  // Состояния для модальных окон
+  const [isAddPlantModalOpen, setIsAddPlantModalOpen] = useState(false);
+  const [isDeletePlantModalOpen, setIsDeletePlantModalOpen] = useState(false);
+  const [plantToDelete, setPlantToDelete] = useState<Plant | null>(null);
+  const [isDeletingPlant, setIsDeletingPlant] = useState(false);
 
   useEffect(() => {
     void loadGarden();
@@ -67,6 +75,70 @@ function GardenContent() {
       setToast({ message: 'Действие выполнено', type: 'success' });
     } catch (err: any) {
       setToast({ message: err.message, type: 'error' });
+    }
+  };
+
+  // Функция добавления растения
+  const handleAddPlant = (newPlant: Plant) => {
+    if (garden) {
+      setGarden({
+        ...garden,
+        plants: [...garden.plants, newPlant],
+        totalLevel: garden.totalLevel + newPlant.virtualLevel
+      });
+      setToast({ message: `Растение "${newPlant.name}" добавлено в сад!`, type: 'success' });
+    }
+  };
+
+  // Функция удаления растения
+  const handleDeletePlant = (plant: Plant) => {
+    setPlantToDelete(plant);
+    setIsDeletePlantModalOpen(true);
+  };
+
+  // Подтверждение удаления растения
+  const confirmDeletePlant = async () => {
+    if (!plantToDelete) return;
+
+    setIsDeletingPlant(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        router.push("/login");
+        return;
+      }
+
+      const response = await fetch('/api/garden/delete-plant', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ plantId: plantToDelete.plantId.toString() })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Ошибка удаления растения');
+      }
+
+      // Обновляем локальное состояние
+      if (garden) {
+        setGarden({
+          ...garden,
+          plants: garden.plants.filter(p => p.plantId.toString() !== plantToDelete.plantId.toString()),
+          totalLevel: data.totalLevel
+        });
+      }
+
+      setToast({ message: data.message, type: 'success' });
+      setIsDeletePlantModalOpen(false);
+      setPlantToDelete(null);
+    } catch (err: any) {
+      setToast({ message: err.message, type: 'error' });
+    } finally {
+      setIsDeletingPlant(false);
     }
   };
 
@@ -226,6 +298,8 @@ function GardenContent() {
               <GardenLayout 
                 plants={garden.plants || []} 
                 onPlantAction={handlePlantAction}
+                onPlantDelete={handleDeletePlant}
+                onAddPlant={() => setIsAddPlantModalOpen(true)}
               />
             </div>
           )}
@@ -239,6 +313,25 @@ function GardenContent() {
           onClose={() => setToast(null)}
         />
       )}
+
+      {/* Модальное окно добавления растения */}
+      <AddPlantModal
+        isOpen={isAddPlantModalOpen}
+        onClose={() => setIsAddPlantModalOpen(false)}
+        onPlantAdded={handleAddPlant}
+      />
+
+      {/* Модальное окно удаления растения */}
+      <DeletePlantModal
+        isOpen={isDeletePlantModalOpen}
+        onClose={() => {
+          setIsDeletePlantModalOpen(false);
+          setPlantToDelete(null);
+        }}
+        onConfirm={confirmDeletePlant}
+        plant={plantToDelete}
+        isDeleting={isDeletingPlant}
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import CustomSelect from "@/components/CustomSelect";
 
 interface Analysis {
   imageUrl: string;
@@ -204,14 +205,15 @@ function ProfileContent() {
                   </div>
                   <div>
                     <label className="block text-sm text-gray-600 mb-1">Тип выращивания</label>
-                    <select
+                    <CustomSelect
                       value={form.siteType}
-                      onChange={(e) => setForm(f => ({ ...f, siteType: (e.target.value as 'garden' | 'pot') }))}
-                      className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white/60 focus:outline-none focus:ring-2 focus:ring-green-500"
-                    >
-                      <option value="garden">Огород/участок</option>
-                      <option value="pot">В горшке/контейнере</option>
-                    </select>
+                      onChange={(value) => setForm(f => ({ ...f, siteType: (value as 'garden' | 'pot') }))}
+                      options={[
+                        { value: 'garden', label: 'Огород/участок' },
+                        { value: 'pot', label: 'В горшке/контейнере' }
+                      ]}
+                      placeholder="Выберите тип выращивания"
+                    />
                   </div>
                 </div>
                 <div className="mt-4">
